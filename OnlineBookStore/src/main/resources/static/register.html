@@ -1,0 +1,58 @@
+<html>
+<head>
+    <title>REGISTER</title>
+    <style>
+        body { background-color:#bcd4ff; font-family:Arial; }
+        .btn { background:black; color:white; padding:8px 16px; border:none; border-radius:3px; }
+        input,select { padding:8px; border-radius:6px; border:1px solid #000; margin:3px; }
+    </style>
+</head>
+<body>
+<h3 align="center">REGISTER</h3>
+<form id="registerForm" align="center">
+    <p>Already Registered? <a href="login.html">Login</a></p>
+    <input type="text" id="firstname" placeholder="First Name" required><br>
+    <input type="text" id="lastname" placeholder="Last Name" required><br>
+    <input type="email" id="email" placeholder="Email" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <select id="dept" required>
+        <option value="">Select Department</option>
+        <option value="CSE">CSE</option><option value="ECE">ECE</option>
+        <option value="MECH">MECH</option><option value="IT">IT</option>
+    </select><br>
+    <select id="role" required>
+        <option value="STUDENT">Student</option>
+        <option value="ADMIN">Admin</option>
+    </select><br>
+    <input type="radio" name="year" value="1st" required>1st
+    <input type="radio" name="year" value="2nd">2nd
+    <input type="radio" name="year" value="3rd">3rd
+    <input type="radio" name="year" value="4th">4th<br><br>
+    <button class="btn" type="submit">SUBMIT</button>
+</form>
+
+<script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const year = document.querySelector('input[name="year"]:checked')?.value || "";
+      const role = document.getElementById("role").value;
+      const user = {
+        firstname: firstname.value.trim(),
+        lastname: lastname.value.trim(),
+        email: email.value.trim(),
+        password: password.value.trim(),
+        dept: dept.value,
+        year: year,
+        role: role
+      };
+
+      const res = await fetch(`http://localhost:8080/api/users/register?type=${role}`, {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(user)
+      });
+      alert(res.ok ? "✅ Registration Successful" : "❌ Failed");
+      if (res.ok) window.location.href = "login.html";
+    });
+</script>
+</body>
+</html>

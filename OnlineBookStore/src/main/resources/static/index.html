@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Online Bookstore Management System</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* ADMIN DROPDOWN FIX */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-btn {
+            background-color: #004080;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            font-size: 15px;
+        }
+
+        .dropdown-btn:hover {
+            background-color: #0066cc;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .dropdown-content a {
+            color: black !important;
+            padding: 10px;
+            text-decoration: none !important;
+            display: block;
+            background: white;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #e6f0ff;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+<!-- HEADER -->
+<header>
+    <h1>📚 Online Bookstore</h1>
+    <nav>
+        <a href="#" id="viewBooksBtn" onclick="showBooks()">View Books</a>
+        <a href="#" id="loginBtn" onclick="openModal('loginModal')">Login</a>
+        <a href="#" id="registerBtn" onclick="openModal('registerModal')">Register</a>
+
+        <a href="#" id="cartBtn" onclick="openCart()" style="display: none;">Cart</a>
+        <button id="orderHistoryBtn" class="btn" onclick="openOrderHistory()">My Orders</button>
+
+        <!-- ADMIN DROPDOWN -->
+        <div id="adminDropdown" class="dropdown" style="display:none;">
+            <button class="dropdown-btn">
+                ⚙️ Admin
+            </button>
+            <div class="dropdown-content">
+                <a href="#" onclick="openAdminDashboard()">Dashboard</a>
+                <a href="#" onclick="openModal('addBookModal')">Add Book</a>
+                <a href="#" onclick="openManageOrders()">Manage Orders</a>
+            </div>
+        </div>
+
+        <a href="#" id="logoutBtn" onclick="logout()"
+           style="display:none; background-color:#e60000; color:white; padding:6px 14px; border-radius:5px;">Logout</a>
+    </nav>
+</header>
+
+<!-- MAIN CONTENT -->
+<div id="content" class="container" style="text-align: center;">
+    <h2>Welcome to the Online Bookstore</h2>
+    <p style="font-size: 16px; margin-top: 10px;">
+        Explore and purchase your favorite books with ease.
+        Login or Register to get started.
+    </p>
+</div>
+
+<footer>
+    <p>© 2025 Online Bookstore | Developed by Sailaja Pulagam, Reshma Sai Aishwarya Artham, and Anvitha
+        Sriramula</p>
+</footer>
+
+<!-- ===== MODALS START ===== -->
+
+<!-- LOGIN -->
+<div id="loginModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('loginModal')">&times;</span>
+        <h2>Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email" required /><br />
+        <input type="password" id="loginPassword" placeholder="Password" required /><br />
+        <button class="btn" onclick="loginUser()">Login</button>
+    </div>
+</div>
+
+<!-- REGISTER -->
+<div id="registerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('registerModal')">&times;</span>
+        <h2>Register</h2>
+
+        <label>First Name</label>
+        <input type="text" id="firstname" placeholder="First Name" required /><br />
+
+        <label>Last Name</label>
+        <input type="text" id="lastname" placeholder="Last Name" required /><br />
+
+        <label>Email</label>
+        <input type="email" id="email" placeholder="Email" required /><br />
+
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Password" required /><br />
+
+        <label>Department</label>
+        <select id="dept">
+            <option>Select Department</option>
+            <option>CSE</option>
+            <option>ECE</option>
+            <option>IT</option>
+            <option>MECH</option>
+        </select><br />
+
+        <label>User Type</label>
+        <select id="role">
+            <option value="STUDENT">Student</option>
+            <option value="ADMIN">Admin</option>
+        </select><br />
+
+        <button class="btn" onclick="registerUser()">Register</button>
+    </div>
+</div>
+
+<!-- CART -->
+<div id="cartModal" class="modal">
+    <div class="modal-content cart-modal">
+        <span class="close-btn" onclick="closeModal('cartModal')">&times;</span>
+        <h2>Your Cart </h2>
+        <div id="cartItems" class="cart-items"></div>
+        <div class="cart-footer">
+            <p id="totalPrice">Total: ₹0</p>
+            <button class="btn" onclick="openPaymentModal()">Checkout</button>
+        </div>
+    </div>
+</div>
+
+<!-- ORDER HISTORY -->
+<div id="orderHistoryModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('orderHistoryModal')">&times;</span>
+        <h2>Your Orders</h2>
+        <div id="orderHistoryContent"></div>
+    </div>
+</div>
+
+<!-- FIXED USER ORDER HISTORY MODAL -->
+<div id="myOrdersModal" class="modal">
+    <div class="modal-content" style="max-width:500px;">
+        <span class="close-btn" onclick="closeModal('myOrdersModal')">&times;</span>
+        <h2>Your Order History</h2>
+
+        <div id="myOrdersContainer" style="max-height:400px; overflow-y:auto;">
+            <!-- Orders will be inserted here -->
+        </div>
+    </div>
+</div>
+<!-- PAYMENT -->
+<div id="paymentModal" class="modal">
+    <div class="modal-content" style="text-align: center; padding: 25px;">
+        <span class="close-btn" onclick="closeModal('paymentModal')">&times;</span>
+        <h2 style="color: #004aad;">Select Payment Method 💳</h2>
+
+        <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap">
+            <button class="btn payment-btn" onclick="processPayment('COD')" style="background:#007bff;">
+                Cash on Delivery
+            </button>
+
+            <button class="btn payment-btn" onclick="processPayment('CreditCard')" style="background:#28a745;">
+                Credit Card
+            </button>
+
+            <button class="btn payment-btn" onclick="processPayment('PayPal')" style="background:#ffc107;">
+                PayPal
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- CREDIT CARD -->
+<div id="cardModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('cardModal')">&times;</span>
+        <h2>Enter Card Details</h2>
+
+        <input type="text" id="cardNumber" placeholder="Card Number" /><br />
+        <input type="text" id="cardName" placeholder="Name on Card" /><br />
+        <input type="text" id="cardExpiry" placeholder="MM/YY" /><br />
+        <input type="text" id="cardCVV" placeholder="CVV" /><br />
+
+        <button class="btn" onclick="submitCardPayment()">Pay Now</button>
+    </div>
+</div>
+
+<!-- MANAGE ORDERS -->
+<div id="manageOrdersModal" class="modal">
+    <div class="modal-content" style="max-width: 700px;">
+        <span class="close-btn" onclick="closeModal('manageOrdersModal')">&times;</span>
+        <h2>📦 Manage All Orders</h2>
+        <div id="adminOrderList"></div>
+    </div>
+</div>
+<div id="adminOrdersModal" class="modal">
+    <div class="modal-content" style="max-width:600px;">
+        <span class="close-btn" onclick="closeModal('adminOrdersModal')">&times;</span>
+        <h2>All Orders</h2>
+
+        <div id="adminOrdersContainer" style="max-height:450px; overflow-y:auto;"></div>
+    </div>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="adminDashboard" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <span class="close-btn" onclick="closeModal('adminDashboard')">&times;</span>
+        <h2>📊 Admin Dashboard</h2>
+        <canvas id="bookChart"></canvas>
+        <canvas id="orderChart" style="margin-top: 30px;"></canvas>
+        <button class="btn" onclick="closeModal('adminDashboard')">Close</button>
+    </div>
+</div>
+
+<!-- ADD BOOK -->
+<div id="addBookModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('addBookModal')">&times;</span>
+        <h2>Add New Book 📚</h2>
+
+        <form id="addBookForm">
+            <label>Title:</label>
+            <input type="text" id="bookTitle" required />
+
+            <label>Author:</label>
+            <input type="text" id="bookAuthor" required />
+
+            <label>Category:</label>
+            <input type="text" id="bookCategory" required />
+
+            <label>Price:</label>
+            <input type="number" id="bookPrice" required />
+
+            <label>Quantity:</label>
+            <input type="number" id="bookQty" required />
+
+            <button class="btn" type="submit">Add Book</button>
+        </form>
+    </div>
+</div>
+<!-- ORDER CONFIRMATION MODAL -->
+<div id="orderSuccessModal" class="modal">
+    <div class="modal-content" style="max-width:450px; text-align:center;">
+        <span class="close-btn" onclick="closeModal('orderSuccessModal')">&times;</span>
+        <h2 style="color:#1A4D8C;">🎉 Order Placed Successfully!</h2>
+
+        <p id="orderSuccessDetails" style="margin:15px 0; font-size:15px;"></p>
+
+        <button class="btn" onclick="closeModal('orderSuccessModal'); openOrderHistory();">
+            View Order History
+        </button>
+    </div>
+</div>
+
+<!-- ===== SCRIPTS (ALL FIXED) ===== -->
+<script>
+    function openModal(id) {
+        document.getElementById(id).style.display = "flex";
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).style.display = "none";
+    }
+
+    /* ======================= BOOKS ======================= */
+    async function showBooks() {
+        const userEmail = localStorage.getItem("userEmail");
+        if (!userEmail) {
+            openModal("loginModal");
+            alert("Please login to view books!");
+            return;
+        }
+
+        const container = document.getElementById("content");
+        container.innerHTML = "<p>Loading books...</p>";
+
+        try {
+            const res = await fetch("http://localhost:8080/api/books/all");
+
+            const books = await res.json();
+
+            if (!res.ok) throw new Error("Failed to load books");
+
+            window.allBooks = books;
+
+            container.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+        <h2>Available Books</h2>
+
+        <div>
+          <input type="text" id="searchBox" placeholder="🔍 Search books..."
+            onkeyup="filterBooks()"
+            style="padding:6px; border-radius:5px; border:1px solid #aaa;">
+
+          <select id="categoryFilter" onchange="filterBooks()"
+            style="padding:6px; border-radius:5px; border:1px solid #aaa;">
+            <option value="">All Categories</option>
+            ${[...new Set(books.map((b) => b.category))]
+                .map((c) => `<option value="${c}">${c}</option>`)
+                .join("")}
+          </select>
+        </div>
+      </div>
+
+      <div id="bookList" class="book-grid">
+        ${books
+                    .map(
+                        (b) => `
+          <div class="book-card">
+            <h3>${b.title}</h3>
+            <p><b>Author:</b> ${b.author}</p>
+            <p><b>Category:</b> ${b.category}</p>
+            <p><b>Price:</b> ₹${b.price}</p>
+            ${
+                            b.quantity > 0
+                                ? `<button class="btn" onclick="addToCart(${b.id}, '${b.title}', '${b.author}', ${b.price})">Add to Cart</button>`
+                                : `<p style="color:red; font-weight:bold;">Out of Stock</p>`
+                        }
+          </div>
+        `
+                    )
+                    .join("")}
+      </div>
+    `;
+        } catch (err) {
+            container.innerHTML =
+                "<p style='color:red;'>⚠️ Could not load books. Server error.</p>";
+        }
+    }
+
+    function filterBooks() {
+        const search = document
+            .getElementById("searchBox")
+            .value.toLowerCase();
+        const category =
+            document.getElementById("categoryFilter").value;
+
+        const filtered = window.allBooks.filter(
+            (b) =>
+                (b.title.toLowerCase().includes(search) ||
+                    b.author.toLowerCase().includes(search)) &&
+                (!category || b.category === category)
+        );
+
+        document.getElementById("bookList").innerHTML = filtered
+            .map(
+                (b) => `
+    <div class="book-card">
+      <h3>${b.title}</h3>
+      <p><b>Author:</b> ${b.author}</p>
+      <p><b>Category:</b> ${b.category}</p>
+      <p><b>Price:</b> ₹${b.price}</p>
+      ${
+                    b.quantity > 0
+                        ? `<button class="btn" onclick="addToCart(${b.id}, '${b.title}', '${b.author}', ${b.price})">Add to Cart</button>`
+                        : `<p style="color:red;font-weight:bold;">Out of Stock</p>`
+                }
+    </div>
+  `
+            )
+            .join("");
+    }
+
+    /* ======================= REGISTER ======================= */
+    async function registerUser() {
+        const role = document.getElementById("role").value;
+
+        const user = {
+            firstname: document.getElementById("firstname").value,
+            lastname: document.getElementById("lastname").value,
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+            dept: document.getElementById("dept").value,
+            year: "1st",
+        };
+
+        const res = await fetch(
+            `http://localhost:8080/api/users/register?type=${role}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(user),
+            }
+        );
+
+        if (res.ok) {
+            alert(`${role} registration successful!`);
+            closeModal("registerModal");
+        } else {
+            alert("Registration failed!");
+        }
+    }
+
+    /* ======================= LOGIN ======================= */
+    async function loginUser() {
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+
+        try {
+            const res = await fetch(
+                "http://localhost:8080/api/users/login",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email, password }),
+                }
+            );
+
+            if (res.ok) {
+                const loggedUser = await res.json();
+
+                localStorage.setItem("userEmail", loggedUser.email);
+                localStorage.setItem("userRole", loggedUser.role);
+
+                alert(`Welcome, ${loggedUser.firstname}!`);
+
+                closeModal("loginModal");
+                updateHeaderButtons();
+                showBooks();
+            } else {
+                alert("❌ Invalid credentials!");
+            }
+        } catch (err) {
+            alert("⚠️ Server not reachable");
+        }
+    }
+
+    /* ======================= HEADER BUTTON LOGIC ======================= */
+    function updateHeaderButtons() {
+        const userEmail = localStorage.getItem("userEmail");
+        const userRole = localStorage.getItem("userRole");
+
+        const loginBtn = document.getElementById("loginBtn");
+        const registerBtn = document.getElementById("registerBtn");
+        const logoutBtn = document.getElementById("logoutBtn");
+        const cartBtn = document.getElementById("cartBtn");
+        const adminDropdown =
+            document.getElementById("adminDropdown");
+
+        if (userEmail) {
+            loginBtn.style.display = "none";
+            registerBtn.style.display = "none";
+            logoutBtn.style.display = "inline-block";
+            cartBtn.style.display = "inline-block";
+
+            if (userRole === "ADMIN") {
+                adminDropdown.style.display = "inline-block";
+            } else {
+                adminDropdown.style.display = "none";
+            }
+        } else {
+            loginBtn.style.display = "inline-block";
+            registerBtn.style.display = "inline-block";
+            logoutBtn.style.display = "none";
+            cartBtn.style.display = "none";
+            adminDropdown.style.display = "none";
+        }
+    }
+
+    /* ======================= LOGOUT ======================= */
+    function logout() {
+        localStorage.clear();
+        alert("You have been logged out.");
+
+        updateHeaderButtons();
+
+        document.getElementById("content").innerHTML = `
+    <h2>Welcome to the Online Bookstore</h2>
+    <p>Explore and purchase your favorite books with ease.</p>`;
+    }
+
+    /* ======================= ADD BOOK ======================= */
+    document
+        .getElementById("addBookForm")
+        .addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const data = {
+                title: document.getElementById("bookTitle").value,
+                author: document.getElementById("bookAuthor").value,
+                category: document.getElementById("bookCategory").value,
+                price: parseFloat(
+                    document.getElementById("bookPrice").value
+                ),
+                quantity: parseInt(
+                    document.getElementById("bookQty").value
+                ),
+            };
+
+            const res = await fetch(
+                "http://localhost:8080/api/books/add",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(data),
+                }
+            );
+
+            if (res.ok) {
+                alert("Book added!");
+                closeModal("addBookModal");
+                showBooks();
+            } else alert("Failed to add book");
+        });
+
+    /* ======================= CART ======================= */
+    async function addToCart(id, title, author, price) {
+        const email = localStorage.getItem("userEmail");
+
+        if (!email) {
+            openModal("loginModal");
+            alert("Please login first!");
+            return;
+        }
+
+        const res = await fetch(
+            "http://localhost:8080/api/cart/add",
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userEmail: email,
+                    bookId: id,
+                    title,
+                    author,
+                    price,
+                }),
+            }
+        );
+
+        alert(res.ok ? "Added to cart!" : "Failed to add.");
+    }
+
+    async function openCart() {
+        const email = localStorage.getItem("userEmail");
+
+        if (!email) {
+            openModal("loginModal");
+            return;
+        }
+
+        openModal("cartModal");
+
+        const res = await fetch(
+            `http://localhost:8080/api/cart/${email}`
+        );
+
+        const items = await res.json();
+
+        const container =
+            document.getElementById("cartItems");
+
+        if (!items || items.length === 0) {
+            container.innerHTML =
+                "<p>Your cart is empty.</p>";
+            document.getElementById("totalPrice").textContent =
+                "Total: ₹0";
+            return;
+        }
+
+        let total = 0;
+
+        container.innerHTML = items
+            .map((i) => {
+                total += i.price;
+
+                return `
+      <div class="cart-item">
+        <p><b>${i.title}</b><br>${i.author}</p>
+        <p>₹${i.price}</p>
+        <button class="btn" onclick="removeFromCart(${i.id})">Remove</button>
+      </div>`;
+            })
+            .join("");
+
+        document.getElementById(
+            "totalPrice"
+        ).textContent = `Total: ₹${total}`;
+    }
+
+    async function removeFromCart(id) {
+        const res = await fetch(
+            `http://localhost:8080/api/cart/remove/${id}`,
+            { method: "DELETE" }
+        );
+
+        if (res.ok) {
+            openCart();
+        } else alert("Error removing item");
+    }
+
+    /* ======================= PAYMENT ======================= */
+    function openPaymentModal() {
+        closeModal("cartModal");
+        openModal("paymentModal");
+    }
+
+    async function processPayment(method) {
+        if (method === "CreditCard") {
+            closeModal("paymentModal");
+            openModal("cardModal");
+        } else {
+            await checkout(method);
+        }
+    }
+
+    async function submitCardPayment() {
+        closeModal("cardModal");
+        await checkout("CreditCard");
+    }
+
+   async function checkout(paymentMethod) {
+  const email = localStorage.getItem("userEmail");
+  if (!email) {
+    alert("Please login first!");
+    return;
+  }
+
+  // Load cart items first
+  const resCart = await fetch(`http://localhost:8080/api/cart/${email}`);
+  const cartItems = await resCart.json();
+
+  if (!cartItems.length) {
+    alert("Your cart is empty!");
+    return;
+  }
+
+  // Calculate total amount
+  const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+
+  // Correct order structure to match backend
+  const order = {
+    userEmail: email,
+    items: cartItems,
+    totalAmount: total,
+    paymentMethod
+  };
+
+  try {
+    const res = await fetch("http://localhost:8080/api/orders/place", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order)
+    });
+
+    if (res.ok) {
+      alert("Order placed successfully!");
+
+      // Reset cart visually
+      document.getElementById("cartItems").innerHTML = "<p>Your cart is empty.</p>";
+      document.getElementById("totalPrice").textContent = "Total: ₹0";
+
+      closeModal("cartModal");
+    } else {
+      alert("Checkout failed!");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Server not reachable");
+  }
+}
+
+async function openAdminOrders() {
+  const role = localStorage.getItem("userRole");
+  if (role !== "ADMIN") return alert("Access denied!");
+
+  try {
+    const res = await fetch("http://localhost:8080/api/orders/all");
+    const orders = await res.json();
+
+    const box = document.getElementById("adminOrdersContainer");
+
+    if (!orders || orders.length === 0) {
+      box.innerHTML = "<p>No orders found.</p>";
+    } else {
+      box.innerHTML = orders.map(o => `
+        <div class="order-card" style="border:1px solid #aaa;padding:10px;margin-bottom:10px;">
+          <b>${o.bookTitle}</b> – ₹${o.price}<br>
+          <b>User:</b> ${o.userEmail}<br>
+          <b>Status:</b> ${o.status}<br>
+          <b>Method:</b> ${o.paymentMethod}<br>
+          <select onchange="updateStatus(${o.id}, this.value)">
+            <option value="">-- Update Status --</option>
+            <option value="PLACED">Placed</option>
+            <option value="SHIPPED">Shipped</option>
+            <option value="DELIVERED">Delivered</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+      `).join("");
+    }
+
+    openModal("adminOrdersModal");
+
+  } catch (err) {
+    console.error(err);
+    alert("⚠️ Could not load orders.");
+  }
+}
+async function updateStatus(orderId, newStatus) {
+  if (!newStatus) return;
+
+  try {
+    const res = await fetch(`http://localhost:8080/api/orders/update/${orderId}/${newStatus}`, {
+      method: "PUT"
+    });
+
+    if (res.ok) {
+      alert("Status updated!");
+      openAdminOrders(); // refresh
+    } else {
+      alert("Failed to update status!");
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Server error!");
+  }
+}
+    /* ======================= USER ORDERS ======================= */
+   async function openOrderHistory() {
+  const email = localStorage.getItem("userEmail");
+  if (!email) return alert("Please login first!");
+
+  try {
+    const res = await fetch(`http://localhost:8080/api/orders/${email}`);
+    if (!res.ok) throw new Error("Failed to load orders");
+
+    const orders = await res.json();
+
+    let html = "";
+
+    if (orders.length === 0) {
+      html = "<p>No orders found.</p>";
+    } else {
+      html = orders
+        .map(o => `
+          <div class="order-card">
+            <p><b>Order ID:</b> ${o.id}</p>
+            <p><b>Book:</b> ${o.bookTitle}</p>
+            <p><b>Amount:</b> ₹${o.price}</p>
+            <p><b>Status:</b> ${o.status}</p>
+            <p><b>Payment:</b> ${o.paymentMethod}</p>
+          </div>
+        `)
+        .join("");
+    }
+
+    document.getElementById("orderHistoryContent").innerHTML = html;
+     openModal("orderHistoryModal");
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Failed to load order history!");
+  }
+}
+
+
+    /* ======================= MANAGE ORDERS (ADMIN) ======================= */
+    async function openManageOrders() {
+    if (localStorage.getItem("userRole") !== "ADMIN") {
+        alert("Access Denied: Admin only");
+        return;
+    }
+
+    openModal("manageOrdersModal");
+
+    const res = await fetch("http://localhost:8080/api/orders/all");
+    const orders = await res.json();
+
+    const container = document.getElementById("adminOrderList");
+
+    if (!orders.length) {
+        container.innerHTML = "<p>No orders found.</p>";
+        return;
+    }
+
+    container.innerHTML = orders.map(o => `
+        <div class="order-item" style="padding:10px; border-bottom:1px solid #ccc;">
+            <p><b>Book:</b> ${o.bookTitle}</p>
+            <p><b>User:</b> ${o.userEmail}</p>
+            <p><b>Payment:</b> ${o.paymentMethod}</p>
+            <p><b>Status:</b>
+                <select onchange="updateOrderStatus(${o.id}, this.value)">
+                    <option ${o.status === "PLACED" ? "selected" : ""}>PLACED</option>
+                    <option ${o.status === "SHIPPED" ? "selected" : ""}>SHIPPED</option>
+                    <option ${o.status === "DELIVERED" ? "selected" : ""}>DELIVERED</option>
+                    <option ${o.status === "CANCELLED" ? "selected" : ""}>CANCELLED</option>
+                </select>
+            </p>
+        </div>
+    `).join("");
+}
+
+   async function updateOrderStatus(id, status) {
+    const res = await fetch(
+        `http://localhost:8080/api/orders/update-status/${id}?status=${status}`,
+        { method: "PUT" }
+    );
+
+    if (res.ok) {
+        alert("Order status updated!");
+        openManageOrders();
+    } else {
+        alert("Failed to update status!");
+    }
+}
+
+    /* ======================= ADMIN DASHBOARD ======================= */
+    let bookChartInstance = null;
+    let orderChartInstance = null;
+
+    async function openAdminDashboard() {
+        if (localStorage.getItem("userRole") !== "ADMIN")
+            return alert("Not admin!");
+
+        openModal("adminDashboard");
+
+        try {
+            const [booksRes, ordersRes] = await Promise.all([
+                fetch("http://localhost:8080/api/books/all"),
+                fetch("http://localhost:8080/api/orders/all"),
+            ]);
+
+            const books = await booksRes.json();
+            const orders = await ordersRes.json();
+
+            const categories = [
+                ...new Set(books.map((b) => b.category)),
+            ];
+
+            const categoryCounts = categories.map(
+                (c) => books.filter((b) => b.category === c).length
+            );
+
+            const bookCtx =
+                document.getElementById("bookChart").getContext("2d");
+
+            if (bookChartInstance) bookChartInstance.destroy();
+
+            bookChartInstance = new Chart(bookCtx, {
+                type: "bar",
+                data: {
+                    labels: categories,
+                    datasets: [
+                        {
+                            label: "Books per Category",
+                            data: categoryCounts,
+                        },
+                    ],
+                },
+            });
+
+            const statuses = [
+                "PLACED",
+                "SHIPPED",
+                "DELIVERED",
+                "CANCELLED",
+            ];
+
+            const statusCounts = statuses.map(
+                (s) =>
+                    orders.filter((o) => o.status === s).length
+            );
+
+            const orderCtx =
+                document.getElementById("orderChart").getContext("2d");
+
+            if (orderChartInstance) orderChartInstance.destroy();
+
+            orderChartInstance = new Chart(orderCtx, {
+                type: "pie",
+                data: {
+                    labels: statuses,
+                    datasets: [
+                        {
+                            label: "Order Status",
+                            data: statusCounts,
+                        },
+                    ],
+                },
+            });
+        } catch (err) {
+            alert("Dashboard load error");
+        }
+    }
+
+    /* ======================= INIT ======================= */
+    document.addEventListener("DOMContentLoaded", updateHeaderButtons);
+</script>
+</body>
+
+</html>

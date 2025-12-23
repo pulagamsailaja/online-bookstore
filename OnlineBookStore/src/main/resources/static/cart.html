@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Cart</title>
+    <style>
+        body {
+          font-family: Arial;
+          background-color: #f9fbff;
+        }
+        header {
+          background-color: #003366;
+          color: white;
+          text-align: center;
+          padding: 15px;
+        }
+        table {
+          width: 90%;
+          margin: 20px auto;
+          border-collapse: collapse;
+          background: white;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        th, td {
+          border: 1px solid #ccc;
+          padding: 10px;
+          text-align: center;
+        }
+        th {
+          background-color: #003366;
+          color: white;
+        }
+        button {
+          background-color: #003366;
+          color: white;
+          padding: 5px 10px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+        button:hover {
+          background-color: #0055aa;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h2>My Cart</h2>
+</header>
+
+<table>
+    <thead>
+    <tr>
+        <th>Title</th>
+        <th>Author</th>
+        <th>Price</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="cartTable"></tbody>
+</table>
+
+<h3 id="total" align="center"></h3>
+<div align="center">
+    <button onclick="clearCart()">Clear Cart</button>
+    <button onclick="goBack()">Back to Books</button>
+</div>
+
+<script>
+    async function loadCart() {
+      const email = localStorage.getItem("userEmail") || prompt("Enter your email:");
+      const res = await fetch(`http://localhost:8080/api/cart/${email}`);
+      const cart = await res.json();
+
+      const table = document.getElementById("cartTable");
+      if (cart.length === 0) {
+        table.innerHTML = "<tr><td colspan='4'>Your cart is empty</td></tr>";
+        document.getElementById("total").innerText = "";
+        return;
+      }
+
+      let total = 0;
+      table.innerHTML = cart.map(item => {
+        total += item.price;
+        return `
+          <tr>
+            <td>${item.title}</td>
+            <td>${item.author}</td>
+            <td>₹${item.price}</td>
+            <td><button onclick="removeItem('${email}', ${item.bookId})">Remove</button></td>
+          </tr>`;
+      }).join("");
+
+      document.getElementById("total").innerText = `Total: {total}`;
+    }
+
+    async function removeItem(email, bookId) {
+  const res = await fetch(`http://localhost:8080/api/cart/remove/${email}/${bookId}`, {
+    method: "DELETE"
+  });
+
+  if (res.ok) {
+    alert("Item removed!");
+    loadCart();
+  } else {
+    alert("Failed to remove item.");
+  }
+}
+
+
+    async function clearCart() {
+      const email = localStorage.getItem("userEmail");
+      if (!email) return alert("No user found!");
+      const res = await fetch(`http://localhost:8080/api/cart/clear/${email}`, { method: "DELETE" });
+      if (res.ok) {
+        alert("Cart cleared!");
+        loadCart();
+      }
+    }
+
+    function goBack() {
+      window.location.href = "books.html";
+    }
+
+    loadCart();
+</script>
+</body>
+</html>

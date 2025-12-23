@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Order Management</title>
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+          font-family: 'Segoe UI', Arial, sans-serif;
+          background-color: #f3f7fc;
+          margin: 0;
+          padding: 0;
+        }
+
+        header {
+          background-color: #003366;
+          color: white;
+          padding: 15px;
+          text-align: center;
+        }
+
+        h2 {
+          color: #003366;
+          text-align: center;
+          margin-top: 20px;
+        }
+
+        table {
+          width: 90%;
+          margin: 20px auto;
+          border-collapse: collapse;
+          background: white;
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+          border-radius: 8px;
+        }
+
+        th, td {
+          border: 1px solid #ddd;
+          padding: 12px;
+          text-align: center;
+        }
+
+        th {
+          background-color: #0055aa;
+          color: white;
+        }
+
+        select {
+          padding: 6px 10px;
+          border-radius: 5px;
+          border: 1px solid #ccc;
+        }
+
+        .btn {
+          background-color: #003366;
+          color: white;
+          padding: 8px 14px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+
+        .btn:hover {
+          background-color: #0055aa;
+        }
+
+        .refresh {
+          background-color: #009933;
+          margin-top: 10px;
+        }
+
+        .refresh:hover {
+          background-color: #00b347;
+        }
+    </style>
+</head>
+
+<body>
+<header>
+    <h1>Online Library - Admin Order Management</h1>
+</header>
+
+<h2>All Orders</h2>
+
+<div style="text-align:center;">
+    <button class="btn refresh" onclick="loadOrders()">🔄 Refresh Orders</button>
+</div>
+
+<table id="ordersTable">
+    <thead>
+    <tr>
+        <th>Order ID</th>
+        <th>User Email</th>
+        <th>Book Title</th>
+        <th>Price</th>
+        <th>Payment</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="ordersBody"></tbody>
+</table>
+
+<script>
+    async function loadOrders() {
+      const body = document.getElementById("ordersBody");
+      body.innerHTML = "<tr><td colspan='7'>Loading...</td></tr>";
+
+      try {
+        const res = await fetch("http://localhost:8080/api/orders/all");
+        if (!res.ok) throw new Error("Failed to fetch orders");
+
+        const orders = await res.json();
+        if (orders.length === 0) {
+          body.innerHTML = "<tr><td colspan='7'>No orders found.</td></tr>";
+          return;
+        }
+
+        body.innerHTML = "";
+        orders.forEach(o => {
+          body.innerHTML += `
+            <tr>
+              <td>${o.id}</td>
+              <td>${o.userEmail}</td>
+              <td>${o.bookTitle}</td>
+              <td>₹${o.price}</td>
+              <td>${o.paymentMethod}</td>
+              <td>
+                <select id="status-${o.id}">
+                  <option ${o.status === 'PLACED' ? 'selected' : ''}>PLACED</option>
+                  <option ${o.status === 'SHIPPED' ? 'selected' : ''}>SHIPPED</option>
+                  <option ${o.status === 'DELIVERED' ? 'selected' : ''}>DELIVERED</option>
+                  <option ${o.status === 'CANCELLED' ? 'selected' : ''}>CANCELLED</option>
+                </select>
+              </td>
+              <td>
+                <button class="btn" onclick="updateStatus(${o.id})">Update</button>
+              </td>
+            </tr>`;
+        });
+
+      } catch (err) {
+        console.error(err);
+        body.innerHTML = "<tr><td colspan='7' style='color:red;'>Error loading orders.</td></tr>";
+      }
+    }
+
+    async function updateStatus(orderId) {
+      const newStatus = document.getElementById(`status-${orderId}`).value;
+
+      const res = await fetch(`http://localhost:8080/api/orders/update-status/${orderId}?status=${newStatus}`, {
+        method: "PUT"
+      });
+
+      if (res.ok) {
+        alert("✅ Order status updated!");
+        loadOrders();
+      } else {
+        alert("❌ Failed to update order.");
+      }
+    }
+
+    loadOrders();
+</script>
+
+</body>
+</html>

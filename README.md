@@ -1,27 +1,35 @@
-# Online Book Store
+# Online Bookstore Application
 
-Online Book Store web application built using **Spring Boot**, **MySQL**, and **MVC architecture**, with design patterns.
+A full-stack e-commerce web application that allows users to browse books, manage carts, and place orders with secure authentication and role-based access.
 
-## Tech Stack
-- Java
-- Spring Boot
-- Spring Data JPA
-- MySQL
-- HTML/CSS
+## 🧰 Tech Stack
+- **Backend:** Java, Spring Boot
+- **Frontend:** HTML, CSS, JavaScript
+- **Database:** MySQL
+- **Tools:** Git, IntelliJ IDEA
 
-## Features
-- User login/register
-- Book listing
-- Cart management
-- Order placement
-- Admin pages (if included)
+## ✨ Features
+- User authentication and role-based access (Admin / User)
+- Browse books and manage shopping cart
+- Order placement with automated stock updates
+- RESTful APIs for users, orders, and inventory
+- Relational database design with foreign keys
 
-## How to Run
-1. Open the project in IntelliJ
-2. Update database config in `application.properties`
-3. Run `OnlineBookStoreApplication`
+## 🧠 Design & Architecture
+- Implemented OOP design patterns:
+  - Strategy
+  - Factory
+  - Observer
+  - State
+  - Singleton
+- Modular backend structure for scalability and maintainability
 
-## Project Structure
-- `src/main/java` → backend code
-- `src/main/resources/static` → frontend pages
-- `src/main/resources/application.properties` → config
+## 🗄 Database
+- Normalized relational schema
+- Managed 100+ records across multiple related tables
+
+## ▶️ How to Run
+1. Clone the repository  
+2. Configure MySQL database credentials  
+3. Run the Spring Boot application  
+4. Access the app locally via browser
